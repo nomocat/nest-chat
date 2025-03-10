@@ -18,13 +18,13 @@ export class UserService {
   async register(user: RegisterUserDto) {
     const captcha = await this.redisService.get(`captcha_${user.email}`);
 
-    if (!captcha) {
-      throw new HttpException('验证码已失效', HttpStatus.BAD_REQUEST);
-    }
+    // if (!captcha) {
+    //   throw new HttpException('验证码已失效', HttpStatus.BAD_REQUEST);
+    // }
 
-    if (user.captcha !== captcha) {
-      throw new HttpException('验证码不正确', HttpStatus.BAD_REQUEST);
-    }
+    // if (user.captcha !== captcha) {
+    //   throw new HttpException('验证码不正确', HttpStatus.BAD_REQUEST);
+    // }
 
     const foundUser = await this.prismaService.user.findUnique({
       where: {
@@ -76,5 +76,69 @@ export class UserService {
 
     foundUser.password = "";
     return foundUser;
+  }
+  
+  async findUserDetailById(userId: number) {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        id: userId
+      },
+      select: {
+        id: true,
+        username: true,
+        nickName: true,
+        email: true,
+        headPic: true,
+        createTime: true
+      }
+    });
+    return user;
+  }
+
+  async getFriendship(userId: number) {
+    const friends = await this.prismaService.friendship.findMany({
+      where: {
+        OR: [
+          {
+            userId: userId
+          },
+          {
+            friendId: userId
+          }
+        ]
+      }
+    });
+
+    const set = new Set<number>();
+    for (let i = 0; i < friends.length; i++) {
+      set.add(friends[i].userId)
+      set.add(friends[i].friendId)
+    }
+
+    const friendIds = [...set].filter(item => item !== userId);
+
+    const res:
+      { id: number; username: string; nickName: string; email: string }[]
+      = [];
+
+    for (let i = 0; i < friendIds.length; i++) {
+      const user = await this.prismaService.user.findUnique({
+        where: {
+          id: friendIds[i],
+        },
+        select: {
+          id: true,
+          username: true,
+          nickName: true,
+          email: true
+        }
+      })
+
+      if (user !== null) {
+        res.push(user);
+      }
+    }
+
+    return res
   }
 }

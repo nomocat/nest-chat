@@ -5,6 +5,7 @@ import { EmailService } from 'src/email/email.service';
 import { RedisService } from 'src/redis/redis.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
+import { RequireLogin, UserInfo } from 'src/custom.decorator';
 
 @Controller('user')
 export class UserController {
@@ -37,19 +38,31 @@ export class UserController {
 
   @Inject(JwtService)
   private jwtService: JwtService;
-  
+
   @Post('login')
   async userLogin(@Body() loginUser: LoginUserDto) {
-      const user = await this.userService.login(loginUser);
-  
-      return {
-        user,
-        token: this.jwtService.sign({
-          userId: user.id,
-          username: user.username
-        }, {
-          expiresIn: '7d'
-        })
-      };
+    const user = await this.userService.login(loginUser);
+
+    return {
+      user,
+      token: this.jwtService.sign({
+        userId: user.id,
+        username: user.username
+      }, {
+        expiresIn: '7d'
+      })
+    };
+  }
+
+  @Get('info')
+  @RequireLogin()
+  async info(@UserInfo('userId') userId: number) {
+    return this.userService.findUserDetailById(userId);
+  }
+
+  @Get('friendship')
+  @RequireLogin()
+  async friendship(@UserInfo('userId') userId: number) {
+    return this.userService.getFriendship(userId);
   }
 }

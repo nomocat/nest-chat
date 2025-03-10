@@ -14,7 +14,7 @@ export class AppController {
   @Get('aaa')
   @RequireLogin()
   aaa(@UserInfo() userInfo, @UserInfo('username') username) {
-      console.log(userInfo, username);
-      return 'aaa';
+    console.log(userInfo, username);
+    return 'aaa';
   }
 }
