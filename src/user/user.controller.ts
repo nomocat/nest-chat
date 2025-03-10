@@ -3,6 +3,8 @@ import { UserService } from './user.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { EmailService } from 'src/email/email.service';
 import { RedisService } from 'src/redis/redis.service';
+import { LoginUserDto } from './dto/login-user.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Controller('user')
 export class UserController {
@@ -31,5 +33,23 @@ export class UserController {
       html: `<p>你的注册验证码是 ${code}</p>`
     });
     return '发送成功';
+  }
+
+  @Inject(JwtService)
+  private jwtService: JwtService;
+  
+  @Post('login')
+  async userLogin(@Body() loginUser: LoginUserDto) {
+      const user = await this.userService.login(loginUser);
+  
+      return {
+        user,
+        token: this.jwtService.sign({
+          userId: user.id,
+          username: user.username
+        }, {
+          expiresIn: '7d'
+        })
+      };
   }
 }
