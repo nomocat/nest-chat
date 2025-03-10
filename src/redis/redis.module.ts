@@ -9,12 +9,17 @@ import { createClient } from 'redis';
     {
       provide: 'REDIS_CLIENT',
       async useFactory() {
+        const redisHost = process.env.REDIS_HOST || 'localhost'; // 默认值为 localhost
+        const redisPort = parseInt(process.env.REDIS_PORT || '6379', 10); // 默认端口 6379
+        const redisDatabase = parseInt(process.env.REDIS_DB || '0', 10); // 默认数据库 0
+
         const client = createClient({
             socket: {
-                host: 'localhost',
-                port: 6379
+                host: redisHost,
+                port: redisPort,
+                // reconnectStrategy: (retries) => Math.min(retries * 50, 2000) // 设置重连策略
             },
-            database: 0
+            database: redisDatabase
         });
         await client.connect();
         return client;
