@@ -59,10 +59,4 @@ export class UserController {
   async info(@UserInfo('userId') userId: number) {
     return this.userService.findUserDetailById(userId);
   }
-
-  @Get('friendship')
-  @RequireLogin()
-  async friendship(@UserInfo('userId') userId: number) {
-    return this.userService.getFriendship(userId);
-  }
 }

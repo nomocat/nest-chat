@@ -80,4 +80,50 @@ export class FriendshipService {
         })
         return '删除成功';
     }
+
+    async getFriendship(userId: number) {
+        const friends = await this.prismaService.friendship.findMany({
+            where: {
+                OR: [
+                    {
+                        userId: userId
+                    },
+                    {
+                        friendId: userId
+                    }
+                ]
+            }
+        });
+
+        const set = new Set<number>();
+        for (let i = 0; i < friends.length; i++) {
+            set.add(friends[i].userId)
+            set.add(friends[i].friendId)
+        }
+
+        const friendIds = [...set].filter(item => item !== userId);
+
+        const res:
+            { id: number; username: string; nickName: string; email: string }[]
+            = [];
+
+        for (let i = 0; i < friendIds.length; i++) {
+            const user = await this.prismaService.user.findUnique({
+                where: {
+                    id: friendIds[i],
+                },
+                select: {
+                    id: true,
+                    username: true,
+                    nickName: true,
+                    email: true
+                }
+            })
+            if (user) {
+                res.push(user)
+            }
+        }
+
+        return res
+    }
 }

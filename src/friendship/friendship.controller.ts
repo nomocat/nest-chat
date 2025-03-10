@@ -23,6 +23,12 @@ export class FriendshipController {
     return this.friendshipService.list(userId);
   }
 
+  @Get('list')
+  async friendship(@UserInfo('userId') userId: number) {
+    return this.friendshipService.getFriendship(userId);
+  }
+
+
   @Get('agree/:id')
   async agree(@Param('id') friendId: number, @UserInfo("userId") userId: number) {
     if (!friendId) {
